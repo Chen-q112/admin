@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自然元素碰撞实验室 </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            height: 1000px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+
+        .game-container {
+            width: 100%;
+			height: 1000px;
+            max-width: 100000px;
+            height: 95vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 25px;
+            width: 95%;
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .header h1 {
+            font-size: 3.5rem;
+            text-shadow: 0 0 20px , 0 0 40px ;
+            margin-bottom: 15px;
+            letter-spacing: 1.5px;
+            background: linear-gradient(to right, #ff8a00, #da1b60, #00c3ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+        }
+
+        .header p {
+            font-size: 1.4rem;
+            max-width: 950px;
+            margin: 0 auto;
+            line-height: 1.8;
+            color: #e0f7fa;
+        }
+
+        .game-area {
+            display: flex;
+            width: 100%;
+            height: 75%;
+            justify-content: space-between;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .elements-container {
+            width: 18%;
+            height: 95%;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 25px;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            overflow-y: auto;
+        }
+
+        .elements-container::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .elements-container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+        }
+
+        .elements-container::-webkit-scrollbar-thumb {
+            background: rgba(100, 217, 255, 0.6);
+            border-radius: 5px;
+        }
+
+        .element {
+            width: 130px;
+            height: 130px;
+            border-radius: 25px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 3.5rem;
+            cursor: grab;
+            transition: all 0.3s ease;
+            position: relative;
+            margin: 20px auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            color: white;
+            user-select: none;
+            transform-style: preserve-3d;
+        }
+
+        .element:hover {
+            transform: scale(1.12) translateY(-8px);
+            filter: brightness(1.25);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+        }
+
+        .element-name {
+            position: absolute;
+            bottom: -35px;
+            font-size: 1.3rem;
+            text-shadow: 0 0 8px black;
+            font-weight: bold;
+            white-space: nowrap;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 15px;
+            border-radius: 12px;
+        }
+
+        .reaction-area {
+            width: 60%;
+            height: 95%;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .reaction-circle {
+            width: 420px;
+            height: 420px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.2) 70%);
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 50px rgba(0, 238, 255, 0.8),
+                        inset 0 0 50px rgba(0, 238, 255, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .reaction-result {
+            position: absolute;
+            font-size: 6rem;
+            opacity: 0;
+            transition: opacity 0.5s, transform 0.5s;
+            text-shadow: 0 0 30px currentColor;
+            pointer-events: none;
+            z-index: 10;
+            transform: scale(0.8);
+        }
+
+        .reaction-text {
+            position: absolute;
+            bottom: -80px;
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            width: 100%;
+            opacity: 0;
+            transition: opacity 0.5s;
+            text-shadow: 0 0 20px rgba(0, 0, 0, 0.9);
+            pointer-events: none;
+            z-index: 10;
+            padding: 10px 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 18px;
+            max-width: 85%;
+            margin: 0 auto;
+        }
+
+        .instructions {
+            position: absolute;
+            bottom: 40px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 18px 40px;
+            border-radius: 18px;
+            font-size: 1.4rem;
+            text-align: center;
+            max-width: 92%;
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+			margin-top: 150px;
+        }
+
+        /* 元素颜色定义 */
+        .fire { background: linear-gradient(135deg, #ff512f, #f09819); }
+        .water { background: linear-gradient(135deg, #1a2980, #26d0ce); }
+        .electric { background: linear-gradient(135deg, #f5af19, #f12711); }
+        .wind { background: linear-gradient(135deg, #56ccf2, #2f80ed); }
+        .earth { background: linear-gradient(135deg, #834d9b, #d04ed6); }
+        .ice { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .light { background: linear-gradient(135deg, #f6d365, #fda085); }
+        .plant { background: linear-gradient(135deg, #0ba360, #3cba92); }
+        .lava { background: linear-gradient(135deg, #f46b45, #eea849); }
+        .sand { background: linear-gradient(135deg, #f5d76e, #d4c17f); }
+        .metal { background: linear-gradient(135deg, #616161, #9bc5c3); }
+        .cloud { background: linear-gradient(135deg, #bdc3c7, #2c3e50); }
+        .mountain { background: linear-gradient(135deg, #8e9eab, #eef2f3); }
+        .ocean { background: linear-gradient(135deg, #1a2980, #26d0ce); }
+        .mineral { background: linear-gradient(135deg, #8e2de2, #4a00e0); }
+        .storm { background: linear-gradient(135deg, #373B44, #4286f4); }
+        .crystal { background: linear-gradient(135deg, #0cebeb, #20e3b2, #29ffc6); }
+
+        .element.dragging {
+            opacity: 0.8;
+            transform: scale(1.15);
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.95);
+            z-index: 100;
+        }
+
+        .reaction-circle .element {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: float 3s infinite ease-in-out;
+            z-index: 5;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(-50%, -55%); }
+            50% { transform: translate(-50%, -45%); }
+        }
+
+        .particle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        .reset-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            background: rgba(255, 50, 50, 0.5);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.2rem;
+            transition: all 0.3s;
+            backdrop-filter: blur(6px);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .reset-btn:hover {
+            background: rgba(255, 80, 80, 0.7);
+            transform: scale(1.08);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .reaction-history {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 25px;
+            width: 280px;
+            max-height: 220px;
+            overflow-y: auto;
+            backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+        }
+
+        .reaction-history h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #00eeff;
+            font-size: 1.5rem;
+            text-shadow: 0 0 15px rgba(0, 238, 255, 0.8);
+        }
+
+        .history-item {
+            padding: 10px 12px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .history-item i {
+            font-size: 1.3rem;
+        }
+
+        .element-counter {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            z-index: 20;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+			margin-left: 150px;
+        }
+
+        .reaction-circle::before {
+            content: '';
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
+            border-radius: 50%;
+            background: radial-gradient(circle, transparent 40%, rgba(0, 238, 255, 0.15) 100%);
+            z-index: -1;
+            animation: pulse 4s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.08); opacity: 1; }
+        }
+
+        .drop-zone-active {
+            animation: pulse-glow 1.5s infinite alternate;
+            box-shadow: 0 0 60px rgba(0, 238, 255, 1),
+                        inset 0 0 60px rgba(0, 238, 255, 0.7) !important;
+        }
+
+        @keyframes pulse-glow {
+            from { box-shadow: 0 0 50px rgba(0, 238, 255, 0.8), inset 0 0 50px rgba(0, 238, 255, 0.5); }
+            to { box-shadow: 0 0 70px rgba(0, 238, 255, 1), inset 0 0 70px rgba(0, 238, 255, 0.8); }
+        }
+
+        .drop-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.8rem;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            pointer-events: none;
+            transition: opacity 0.3s;
+            width: 80%;
+            z-index: 2;
+        }
+
+        .elements-in-circle .drop-hint {
+            opacity: 0;
+        }
+
+        .reaction-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .reaction-popup.active {
+            opacity: 1;
+        }
+
+        .popup-content {
+            background: rgba(0, 0, 0, 0.85);
+            padding: 40px 60px;
+            border-radius: 25px;
+            text-align: center;
+            backdrop-filter: blur(15px);
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 50px rgba(0, 238, 255, 0.7);
+            transform: scale(0.8);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+			
+        }
+
+        .reaction-popup.active .popup-content {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .popup-emoji {
+            font-size: 8rem;
+            margin-bottom: 25px;
+            text-shadow: 0 0 30px currentColor;
+            transform: scale(0.8);
+            opacity: 0;
+            transition: all 0.4s 0.1s;
+        }
+
+        .reaction-popup.active .popup-emoji {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .popup-text {
+            font-size: 3rem;
+            font-weight: bold;
+            color: white;
+            max-width: 800px;
+            line-height: 1.4;
+            transform: translateY(30px);
+            opacity: 0;
+            transition: all 0.4s 0.2s;
+        }
+
+        .reaction-popup.active .popup-text {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @keyframes lightning {
+            0%, 100% { opacity: 0; }
+            10%, 30%, 50%, 70%, 90% { opacity: 1; }
+        }
+        
+        @keyframes explosion {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+        
+        @keyframes grow {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        .sound-btn {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.8rem;
+            transition: all 0.3s;
+            backdrop-filter: blur(6px);
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .sound-btn:hover {
+            background: rgba(100, 100, 255, 0.7);
+            transform: scale(1.08);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (max-width: 1200px) {
+            .game-area {
+                flex-direction: column;
+                height: 85%;
+            }
+            
+            .elements-container {
+                width: 95%;
+                height: 22%;
+                flex-direction: row;
+                padding: 15px;
+            }
+            
+            .element {
+                width: 90px;
+                height: 90px;
+                margin: 0 10px;
+                font-size: 2.5rem;
+            }
+            
+            .element-name {
+                font-size: 1rem;
+                bottom: -22px;
+                padding: 3px 10px;
+            }
+            
+            .reaction-area {
+                width: 95%;
+                height: 50%;
+            }
+            
+            .reaction-circle {
+                width: 320px;
+                height: 320px;
+            }
+            
+            .instructions {
+                bottom: 20px;
+                font-size: 1.2rem;
+                padding: 15px 25px;
+            }
+            
+            .reaction-history {
+                position: relative;
+                width: 92%;
+                max-height: 140px;
+                top: 0;
+                right: 0;
+                margin-top: 20px;
+            }
+            
+            .header {
+                padding-top: 60px;
+            }
+            
+            .reset-btn {
+                top: 15px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 12px 25px;
+			
+            }
+            
+            .sound-btn {
+                top: 15px;
+                right: 15px;
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
+            }
+            
+            .header h1 {
+                font-size: 2.8rem;
+            }
+            
+            .header p {
+                font-size: 1.2rem;
+            }
+            
+            .popup-content {
+                padding: 30px 40px;
+                width: 90%;
+            }
+            
+            .popup-emoji {
+                font-size: 5rem;
+            }
+            
+            .popup-text {
+                font-size: 2rem;
+            }
+			.card {
+			    background: rgba(255, 255, 255, 0.1);
+			    backdrop-filter: blur(10px);
+			    border-radius: 15px;
+			    padding: 25px;
+			    width: 350px;
+			    border: 1px solid rgba(255, 255, 255, 0.15);
+			    transition: transform 0.3s ease;
+			}
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <h1>自然元素碰撞实验室 </h1>
+            <p>从两侧选择自然元素并拖动到中央反应区。将两个元素组合在一起，观察它们之间的神奇反应！探索自然界中元素组合产生的各种现象。</p>
+        </div>
+        
+        <div class="game-area">
+            <div class="elements-container left-elements">
+                <div class="element fire" draggable="true" data-element="fire">
+                    <i class="fas fa-fire"></i>
+                    <div class="element-name">火焰</div>
+                </div>
+                <div class="element water" draggable="true" data-element="water">
+                    <i class="fas fa-tint"></i>
+                    <div class="element-name">水流</div>
+                </div>
+                <div class="element electric" draggable="true" data-element="electric">
+                    <i class="fas fa-bolt"></i>
+                    <div class="element-name">雷电</div>
+                </div>
+                <div class="element plant" draggable="true" data-element="plant">
+                    <i class="fas fa-leaf"></i>
+                    <div class="element-name">植物</div>
+                </div>
+                <div class="element light" draggable="true" data-element="light">
+                    <i class="fas fa-sun"></i>
+                    <div class="element-name">阳光</div>
+                </div>
+                <div class="element mineral" draggable="true" data-element="mineral">
+                    <i class="fas fa-gem"></i>
+                    <div class="element-name">矿物</div>
+                </div>
+                <div class="element storm" draggable="true" data-element="storm">
+                    <i class="fas fa-cloud-showers-heavy"></i>
+                    <div class="element-name">风暴</div>
+                </div>
+                
+            </div>
+            
+            <div class="reaction-area">
+                <div class="reaction-circle" id="reactionCircle">
+                    <div class="element-counter" id="elementCounter">元素: 0/2</div>
+                    <div class="drop-hint">将元素拖放到此处进行组合</div>
+                </div>
+            </div>
+            
+            <div class="elements-container right-elements">
+                <div class="element wind" draggable="true" data-element="wind">
+                    <i class="fas fa-wind"></i>
+                    <div class="element-name">风</div>
+                </div>
+                <div class="element earth" draggable="true" data-element="earth">
+                    <i class="fas fa-mountain"></i>
+                    <div class="element-name">土壤</div>
+                </div>
+                <div class="element ice" draggable="true" data-element="ice">
+                    <i class="fas fa-snowflake"></i>
+                    <div class="element-name">冰雪</div>
+                </div>
+                <div class="element lava" draggable="true" data-element="lava">
+                    <i class="fas fa-fire-alt"></i>
+                    <div class="element-name">熔岩</div>
+                </div>
+                <div class="element sand" draggable="true" data-element="sand">
+                    <i class="fas fa-wind"></i>
+                    <div class="element-name">沙尘</div>
+                </div>
+                <div class="element ocean" draggable="true" data-element="ocean">
+                    <i class="fas fa-water"></i>
+                    <div class="element-name">海洋</div>
+                </div>
+                <div class="element metal" draggable="true" data-element="metal">
+                    <i class="fas fa-hammer"></i>
+                    <div class="element-name">金属</div>
+                </div>
+                <div class="element cloud" draggable="true" data-element="cloud">
+                    <i class="fas fa-cloud"></i>
+                    <div class="element-name">云朵</div>
+                </div>
+                <div class="element crystal" draggable="true" data-element="crystal">
+                    <i class="fas fa-diamond"></i>
+                    <div class="element-name">水晶</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="reaction-history">
+            <h3><i class="fas fa-clipboard-list"></i> 反应记录</h3>
+            <div id="historyList"></div>
+        </div>
+        
+        <button class="reset-btn" id="resetBtn"><i class="fas fa-redo"></i> 重置实验</button>
+	
+		 
+       
+        
+        <div class="instructions">
+            <i class="fas fa-lightbulb"></i> 提示：拖动两个元素到中央圆圈内，观察它们之间的自然反应！尝试不同的组合发现隐藏的自然现象。<br />还有一些在自然中才存在的现象，你可以去亲自去看看。
+        </div>
+      
+
+        <div class="reaction-popup" id="reactionPopup">
+            <div class="popup-content">
+                <div class="popup-emoji" id="popupEmoji"></div>
+                <div class="popup-text" id="popupText"></div>
+            </div>
+        </div>
+		
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const elements = document.querySelectorAll('.element');
+            const reactionCircle = document.getElementById('reactionCircle');
+            const resetBtn = document.getElementById('resetBtn');
+            const soundBtn = document.getElementById('soundBtn');
+            const historyList = document.getElementById('historyList');
+            const elementCounter = document.getElementById('elementCounter');
+            const dropHint = document.querySelector('.drop-hint');
+            const reactionPopup = document.getElementById('reactionPopup');
+            const popupEmoji = document.getElementById('popupEmoji');
+            const popupText = document.getElementById('popupText');
+            
+            let draggedElement = null;
+            let elementsInCircle = [];
+            let reactionHistory = [];
+            
+
+            function initGame() {
+
+                reactionCircle.querySelectorAll('.dynamic-element, .particle').forEach(el => el.remove());
+                reactionCircle.classList.remove('elements-in-circle');
+                
+
+                elementsInCircle = [];
+                reactionHistory = [];
+                historyList.innerHTML = '';
+                updateElementCounter();
+                
+
+                addHistory("实验开始！尝试组合自然元素");
+            }
+    
+            function updateElementCounter() {
+                elementCounter.textContent = `元素: ${elementsInCircle.length}/2`;
+                if (elementsInCircle.length > 0) {
+                    reactionCircle.classList.add('elements-in-circle');
+                } else {
+                    reactionCircle.classList.remove('elements-in-circle');
+                }
+            }
+            
+
+            function addHistory(text, icon = "fas fa-flask") {
+                reactionHistory.unshift({text, icon});
+                if (reactionHistory.length > 12) {
+                    reactionHistory.pop();
+                }
+                
+
+                historyList.innerHTML = '';
+                reactionHistory.forEach(item => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `<i class="${item.icon}"></i> ${item.text}`;
+                    historyList.appendChild(historyItem);
+                });
+            }
+
+            elements.forEach(element => {
+                element.addEventListener('dragstart', (e) => {
+                    draggedElement = element;
+                    element.classList.add('dragging');
+                    e.dataTransfer.setData('text/plain', element.dataset.element);
+                });
+                
+                element.addEventListener('dragend', () => {
+                    element.classList.remove('dragging');
+                });
+            });
+            
+          
+            reactionCircle.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                reactionCircle.classList.add('drop-zone-active');
+            });
+            
+            reactionCircle.addEventListener('dragenter', (e) => {
+                e.preventDefault();
+                reactionCircle.classList.add('drop-zone-active');
+            });
+            
+            reactionCircle.addEventListener('dragleave', () => {
+                reactionCircle.classList.remove('drop-zone-active');
+            });
+            
+            reactionCircle.addEventListener('drop', (e) => {
+                e.preventDefault();
+                reactionCircle.classList.remove('drop-zone-active');
+                
+                if (draggedElement && elementsInCircle.length < 2) {
+        
+                    const elementCopy = draggedElement.cloneNode(true);
+                    elementCopy.classList.remove('dragging');
+                    elementCopy.classList.add('dynamic-element');
+                    elementCopy.style.position = 'absolute';
+                    elementCopy.style.cursor = 'default';
+  
+                    const angle = Math.random() * Math.PI * 2;
+                    const radius = reactionCircle.offsetWidth / 3.5;
+                    const x = Math.cos(angle) * radius;
+                    const y = Math.sin(angle) * radius;
+                    
+                    elementCopy.style.left = `calc(50% + ${x}px)`;
+                    elementCopy.style.top = `calc(50% + ${y}px)`;
+                    elementCopy.style.transform = 'translate(-50%, -50%)';
+                    
+                    reactionCircle.appendChild(elementCopy);
+                    elementsInCircle.push(draggedElement.dataset.element);
+                    updateElementCounter();
+
+                    addHistory(`添加了: ${getElementName(draggedElement.dataset.element)}`, draggedElement.querySelector('i').className);
+                    
+            
+                    if (elementsInCircle.length === 2) {
+                        setTimeout(triggerReaction, 500);
+                    }
+                }
+            });
+            
+
+            function getElementName(elementType) {
+                const names = {
+                    'fire': '火焰', 
+                    'water': '水流',
+                    'electric': '雷电',
+                    'wind': '风',
+                    'earth': '土壤',
+                    'ice': '冰雪',
+                    'light': '阳光',
+                    'plant': '植物',
+                    'lava': '熔岩',
+                    'sand': '沙尘',
+                    'ocean': '海洋',
+                    'mineral': '矿物',
+                    'metal': '金属',
+                    'cloud': '云朵',
+                    'storm': '风暴',
+                    'crystal': '水晶'
+                };
+                return names[elementType] || elementType;
+            }
+            
+
+            function triggerReaction() {
+                const [elem1, elem2] = elementsInCircle;
+                const reaction = getReaction(elem1, elem2);
+
+                popupEmoji.innerHTML = reaction.emoji;
+                popupEmoji.style.color = reaction.color;
+                popupText.textContent = reaction.result;
+                popupText.style.color = reaction.color;
+                reactionPopup.classList.add('active');
+                
+    
+                if (reaction.specialEffect) {
+                    applySpecialEffect(reaction.specialEffect);
+                }
+                
+
+                createParticles(reaction.color, reaction.particleCount || 150);
+  
+                addHistory(`${getElementName(elem1)} + ${getElementName(elem2)} = ${reaction.result}`, "fas fa-atom");
+ 
+                setTimeout(() => {
+                    reactionPopup.classList.remove('active');
+     
+                 
+                    document.querySelectorAll('.reaction-circle .dynamic-element, .reaction-circle .particle').forEach(el => {
+                        el.remove();
+                    });
+                    
+                    elementsInCircle = [];
+                    updateElementCounter();
+                }, 3000);
+            }
+            
+
+            function getReaction(elem1, elem2) {
+     
+                const elements = [elem1, elem2].sort();
+                const key = elements.join(',');
+                
+          
+                const reactions = {
+          
+                    'fire,water': { result: '高压蒸汽', emoji: '💨🔥', color: '#a8e6cf', particleCount: 170 },
+                    'fire,wind': { result: '火焰风暴', emoji: '🔥🌪️', color: '#ff8a5c', particleCount: 190 },
+                    'fire,earth': { result: '熔岩岩石', emoji: '🌋', color: '#ff6b6b', particleCount: 180 },
+                    'fire,ice': { result: '温暖水雾', emoji: '💧☁️', color: '#4facfe', particleCount: 160 },
+                    'fire,light': { result: '温暖阳光', emoji: '☀️🔥', color: '#ffd700', particleCount: 220 },
+                    'fire,plant': { result: '森林火灾', emoji: '🔥🌲', color: '#ff8c00', particleCount: 190 },
+                    'fire,lava': { result: '火山喷发', emoji: '🌋🌋', color: '#f46b45', particleCount: 250 },
+                    'fire,sand': { result: '玻璃形成', emoji: '🔍🔥', color: '#ff8a00', particleCount: 180 },
+                    'fire,ocean': { result: '海洋蒸发', emoji: '🔥🌊', color: '#1a2980', particleCount: 200 },
+                    'fire,mineral': { result: '熔岩矿脉', emoji: '🔥💎', color: '#ff512f', particleCount: 190 },
+                    'fire,metal': { result: '熔化金属', emoji: '🔥🥫', color: '#ff8c00', particleCount: 180 },
+                    'fire,cloud': { result: '高温蒸汽云', emoji: '🔥☁️', color: '#ff9a8b', particleCount: 180 },
+                    'fire,storm': { result: '火焰雷暴', emoji: '🔥⛈️', color: '#ff6b6b', particleCount: 220 },
+                    'fire,crystal': { result: '熔岩水晶', emoji: '🔥💎', color: '#f46b45', particleCount: 200 },
+                    
+                    'water,wind': { result: '汹涌海浪', emoji: '🌊💨', color: '#2f80ed', particleCount: 180 },
+                    'water,earth': { result: '肥沃泥土', emoji: '🌱💧', color: '#795548', particleCount: 150 },
+                    'water,ice': { result: '冰水混合物', emoji: '🧊💧', color: '#4facfe', particleCount: 160 },
+                    'water,light': { result: '绚丽彩虹', emoji: '🌈💧', color: '#ff6b6b', particleCount: 200 },
+                    'water,plant': { result: '茂盛生长', emoji: '🌴💧', color: '#0ba360', particleCount: 180 },
+                    'water,lava': { result: '火山岩石', emoji: '🌊🔥', color: '#f46b45', particleCount: 200 },
+                    'water,sand': { result: '湿润沙地', emoji: '🏖️💧', color: '#f5d76e', particleCount: 160 },
+                    'water,ocean': { result: '广阔海洋', emoji: '💧🌊', color: '#1a2980', particleCount: 210 },
+                    'water,mineral': { result: '矿物溶解', emoji: '💧💎', color: '#8e2de2', particleCount: 180 },
+                    'water,metal': { result: '金属锈蚀', emoji: '💧🧱', color: '#c0c0c0', particleCount: 170 },
+                    'water,cloud': { result: '积雨云', emoji: '💧☁️', color: '#bdc3c7', particleCount: 170 },
+                    'water,storm': { result: '暴风雨', emoji: '💧⛈️', color: '#373B44', particleCount: 220 },
+                    'water,crystal': { result: '水晶体', emoji: '💧💎', color: '#0cebeb', particleCount: 190 },
+                    
+                    'wind,earth': { result: '沙尘风暴', emoji: '🌪️🏜️', color: '#f5d76e', particleCount: 170 },
+                    'wind,ice': { result: '寒冷气流', emoji: '❄️🌬️', color: '#a8e063', particleCount: 160 },
+                    'wind,light': { result: '晴空万里', emoji: '🌞💨', color: '#56ab2f', particleCount: 210 },
+                    'wind,plant': { result: '种子传播', emoji: '🌱💨', color: '#56ab2f', particleCount: 170 },
+                    'wind,lava': { result: '火山灰扩散', emoji: '💨🌋', color: '#616161', particleCount: 190 },
+                    'wind,sand': { result: '沙尘暴', emoji: '💨🏜️', color: '#d4c17f', particleCount: 170 },
+                    'wind,ocean': { result: '巨大海浪', emoji: '💨🌊', color: '#1a2980', particleCount: 200 },
+                    'wind,mineral': { result: '风蚀矿物', emoji: '💨💎', color: '#8e2de2', particleCount: 180 },
+                    'wind,metal': { result: '风蚀金属', emoji: '💨🧱', color: '#c0c0c0', particleCount: 170 },
+                    'wind,cloud': { result: '快速移动的云', emoji: '☁️💨', color: '#ecf0f1', particleCount: 160 },
+                    'wind,storm': { result: '飓风', emoji: '🌪️🌀', color: '#4286f4', particleCount: 250 },
+                    'wind,crystal': { result: '水晶风铃', emoji: '💨💎', color: '#0cebeb', particleCount: 180 },
+                    
+                    'earth,ice': { result: '冻土苔原', emoji: '❄️🌍', color: '#4ca1af', particleCount: 150 },
+                    'earth,light': { result: '水晶形成', emoji: '💎⛏️', color: '#a8e063', particleCount: 190 },
+                    'earth,plant': { result: '森林生态', emoji: '🌻🌍', color: '#3cba92', particleCount: 180 },
+                    'earth,lava': { result: '火山地貌', emoji: '🌋🏔️', color: '#ff8a00', particleCount: 210 },
+                    'earth,sand': { result: '沙漠形成', emoji: '🌍🏜️', color: '#d4c17f', particleCount: 180 },
+                    'earth,ocean': { result: '海岸侵蚀', emoji: '🏝️🌍', color: '#26d0ce', particleCount: 190 },
+                    'earth,mineral': { result: '宝石矿', emoji: '🌍💎', color: '#4a00e0', particleCount: 200 },
+                    'earth,metal': { result: '金属矿石', emoji: '🌍🧱', color: '#c0c0c0', particleCount: 180 },
+                    'earth,cloud': { result: '高山云雾', emoji: '🌍☁️', color: '#bdc3c7', particleCount: 170 },
+                    'earth,storm': { result: '泥石流', emoji: '🌍⛈️', color: '#795548', particleCount: 210 },
+                    'earth,crystal': { result: '水晶矿脉', emoji: '🌍💎', color: '#20e3b2', particleCount: 200 },
+                    
+                    'ice,light': { result: '冰晶反射', emoji: '🔷❄️', color: '#4ca1af', particleCount: 180 },
+                    'ice,plant': { result: '霜冻植物', emoji: '❄️🌿', color: '#4facfe', particleCount: 170 },
+                    'ice,lava': { result: '黑曜石', emoji: '🪨❄️', color: '#0f0c29', particleCount: 180 },
+                    'ice,sand': { result: '冻沙', emoji: '❄️🏜️', color: '#f5d76e', particleCount: 170 },
+                    'ice,ocean': { result: '冰山形成', emoji: '🏔️❄️', color: '#4facfe', particleCount: 180 },
+                    'ice,mineral': { result: '冰封矿物', emoji: '❄️💎', color: '#8e2de2', particleCount: 180 },
+                    'ice,metal': { result: '冰冷金属', emoji: '❄️🧱', color: '#c0c0c0', particleCount: 170 },
+                    'ice,cloud': { result: '冰雹', emoji: '❄️☁️', color: '#a4b0be', particleCount: 180 },
+                    'ice,storm': { result: '冰风暴', emoji: '❄️⛈️', color: '#4ca1af', particleCount: 210 },
+                    'ice,crystal': { result: '冰晶', emoji: '❄️💎', color: '#4facfe', particleCount: 190 },
+                    
+                    'light,plant': { result: '光合作用', emoji: '🌿☀️', color: '#a8e063', particleCount: 200 },
+                    'light,lava': { result: '炽热熔岩', emoji: '☀️🌋', color: '#ff8c00', particleCount: 200 },
+                    'light,sand': { result: '沙漠热浪', emoji: '☀️🏜️', color: '#f5d76e', particleCount: 190 },
+                    'light,ocean': { result: '海洋反光', emoji: '☀️🌊', color: '#1a2980', particleCount: 200 },
+                    'light,mineral': { result: '宝石光泽', emoji: '☀️💎', color: '#8e2de2', particleCount: 190 },
+                    'light,metal': { result: '金属反光', emoji: '☀️🧱', color: '#ffd700', particleCount: 180 },
+                    'light,cloud': { result: '穿透云层的光', emoji: '☀️☁️', color: '#ffd700', particleCount: 190 },
+                    'light,storm': { result: '风暴后的阳光', emoji: '☀️⛈️', color: '#f5af19', particleCount: 210 },
+                    'light,crystal': { result: '彩虹折射', emoji: '💎🌈', color: '#0cebeb', particleCount: 220 },
+                    
+                    'plant,lava': { result: '火山植物', emoji: '🌿🌋', color: '#ff8c00', particleCount: 190 },
+                    'plant,sand': { result: '沙漠植物', emoji: '🌿🏜️', color: '#0ba360', particleCount: 180 },
+                    'plant,ocean': { result: '海洋植物', emoji: '🌿🌊', color: '#0ba360', particleCount: 190 },
+                    'plant,mineral': { result: '矿物肥料', emoji: '🌿💎', color: '#3cba92', particleCount: 180 },
+                    'plant,metal': { result: '金属藤蔓', emoji: '🌿🧱', color: '#0ba360', particleCount: 180 },
+                    'plant,cloud': { result: '雨林雾气', emoji: '🌿☁️', color: '#0ba360', particleCount: 180 },
+                    'plant,storm': { result: '风暴后的新芽', emoji: '🌿⛈️', color: '#0ba360', particleCount: 200 },
+                    'plant,crystal': { result: '水晶植物', emoji: '🌿💎', color: '#20e3b2', particleCount: 190 },
+                    
+                    'lava,sand': { result: '火山玻璃', emoji: '🌋🏜️', color: '#f5d76e', particleCount: 190 },
+                    'lava,ocean': { result: '海底火山', emoji: '🌋🌊', color: '#1a2980', particleCount: 210 },
+                    'lava,mineral': { result: '熔岩矿脉', emoji: '🌋💎', color: '#f46b45', particleCount: 200 },
+                    'lava,metal': { result: '熔融金属', emoji: '🌋🧱', color: '#ff8a00', particleCount: 190 },
+                    'lava,cloud': { result: '火山灰云', emoji: '🌋☁️', color: '#616161', particleCount: 190 },
+                    'lava,storm': { result: '火山雷暴', emoji: '🌋⛈️', color: '#f46b45', particleCount: 220 },
+                    'lava,crystal': { result: '熔岩水晶', emoji: '🌋💎', color: '#f46b45', particleCount: 200 },
+                    
+                    'sand,ocean': { result: '沙滩', emoji: '🏜️🌊', color: '#f5d76e', particleCount: 180 },
+                    'sand,mineral': { result: '矿物沙', emoji: '🏜️💎', color: '#d4c17f', particleCount: 180 },
+                    'sand,metal': { result: '沙化金属', emoji: '🏜️🧱', color: '#d4c17f', particleCount: 170 },
+                    'sand,cloud': { result: '沙尘云', emoji: '🏜️☁️', color: '#d4c17f', particleCount: 170 },
+                    'sand,storm': { result: '沙尘暴', emoji: '🏜️⛈️', color: '#d4c17f', particleCount: 200 },
+                    'sand,crystal': { result: '沙晶', emoji: '🏜️💎', color: '#f5d76e', particleCount: 180 },
+                    
+                    'ocean,mineral': { result: '海洋矿物', emoji: '🌊💎', color: '#1a2980', particleCount: 190 },
+                    'ocean,metal': { result: '海水腐蚀', emoji: '🌊🧱', color: '#1a2980', particleCount: 180 },
+                    'ocean,cloud': { result: '海洋雾气', emoji: '🌊☁️', color: '#1a2980', particleCount: 180 },
+                    'ocean,storm': { result: '海洋风暴', emoji: '🌊⛈️', color: '#1a2980', particleCount: 220 },
+                    'ocean,crystal': { result: '海洋水晶', emoji: '🌊💎', color: '#0cebeb', particleCount: 190 },
+                    
+                    'mineral,metal': { result: '合金', emoji: '🧱💎', color: '#c0c0c0', particleCount: 180 },
+                    'mineral,cloud': { result: '矿物云', emoji: '💎☁️', color: '#8e2de2', particleCount: 180 },
+                    'mineral,storm': { result: '风暴矿物', emoji: '💎⛈️', color: '#8e2de2', particleCount: 200 },
+                    'mineral,crystal': { result: '矿物结晶', emoji: '💎💎', color: '#8e2de2', particleCount: 190 },
+                    
+                    'metal,cloud': { result: '金属云', emoji: '🧱☁️', color: '#bdc3c7', particleCount: 170 },
+                    'metal,storm': { result: '风暴金属', emoji: '🧱⛈️', color: '#c0c0c0', particleCount: 190 },
+                    'metal,crystal': { result: '水晶金属', emoji: '🧱💎', color: '#0cebeb', particleCount: 190 },
+                    
+                    'cloud,storm': { result: '雷雨云', emoji: '☁️⛈️', color: '#373B44', particleCount: 210 },
+                    'cloud,crystal': { result: '水晶云', emoji: '💎☁️', color: '#0cebeb', particleCount: 190 },
+                    
+                    'storm,electric': { result: '雷暴', emoji: '⚡⛈️', color: '#f5af19', particleCount: 230, specialEffect: 'lightning' },
+                    'electric,wind': { result: '带电风暴', emoji: '⚡💨', color: '#00c3ff', particleCount: 200, specialEffect: 'lightning' },
+                    'electric,earth': { result: '地电效应', emoji: '⚡🌍', color: '#834d9b', particleCount: 180 },
+                    'electric,ice': { result: '静电冰晶', emoji: '⚡❄️', color: '#4facfe', particleCount: 190 },
+                    'electric,plant': { result: '生物电', emoji: '⚡🌿', color: '#0ba360', particleCount: 180, specialEffect: 'lightning' },
+                    'electric,lava': { result: '电磁熔岩', emoji: '⚡🌋', color: '#f46b45', particleCount: 200, specialEffect: 'lightning' },
+                    'electric,sand': { result: '沙尘电荷', emoji: '⚡🏜️', color: '#f5d76e', particleCount: 180 },
+                    'electric,ocean': { result: '海洋闪电', emoji: '⚡🌊', color: '#1a2980', particleCount: 210, specialEffect: 'lightning' },
+                    'electric,mineral': { result: '矿物电荷', emoji: '⚡💎', color: '#8e2de2', particleCount: 190, specialEffect: 'lightning' },
+                    'electric,metal': { result: '电磁效应', emoji: '⚡🧲', color: '#00c3ff', particleCount: 200, specialEffect: 'lightning' },
+                    'electric,cloud': { result: '闪电云', emoji: '⚡☁️', color: '#f5af19', particleCount: 190, specialEffect: 'lightning' },
+                    'electric,crystal': { result: '能量水晶', emoji: '⚡💎', color: '#29ffc6', particleCount: 230, specialEffect: 'lightning' },
+                    'electric,light': { result: '极光', emoji: '⚡🌈', color: '#56ab2f', particleCount: 220, specialEffect: 'lightning' },
+                    'electric,fire': { result: '超级闪电', emoji: '⚡🔥', color: '#f5af19', particleCount: 260, specialEffect: 'lightning' },
+                    'electric,water': { result: '电解水', emoji: '⚡💧', color: '#00c3ff', particleCount: 200, specialEffect: 'lightning' },
+                    
+                    'fire,fire': { result: '更大火焰', emoji: '🔥🔥', color: '#ff0000', particleCount: 240 },
+                    'water,water': { result: '更大水体', emoji: '🌊🌊', color: '#2193b0', particleCount: 220 },
+                    'wind,wind': { result: '强烈风暴', emoji: '🌪️🌪️', color: '#56ab2f', particleCount: 230 },
+                    'earth,earth': { result: '高山形成', emoji: '🏔️🏔️', color: '#603813', particleCount: 210 },
+                    'ice,ice': { result: '冰川时期', emoji: '❄️❄️', color: '#4ca1af', particleCount: 220 },
+                    'plant,plant': { result: '茂密森林', emoji: '🌲🌳', color: '#0ba360', particleCount: 210 },
+                    'lava,lava': { result: '火山喷发', emoji: '🌋🌋', color: '#f46b45', particleCount: 250 },
+                    'sand,sand': { result: '广阔沙漠', emoji: '🏜️🏜️', color: '#d4c17f', particleCount: 200 },
+                    'ocean,ocean': { result: '深海', emoji: '🌊🌊', color: '#1a2980', particleCount: 230 },
+                    'mineral,mineral': { result: '矿脉', emoji: '💎💎', color: '#8e2de2', particleCount: 210 },
+                    'metal,metal': { result: '合金块', emoji: '🧱🧱', color: '#c0c0c0', particleCount: 190 },
+                    'cloud,cloud': { result: '乌云密布', emoji: '☁️☁️', color: '#2c3e50', particleCount: 180 },
+                    'storm,storm': { result: '超级风暴', emoji: '⛈️⛈️', color: '#373B44', particleCount: 260 },
+                    'crystal,crystal': { result: '水晶洞窟', emoji: '💎💎', color: '#0cebeb', particleCount: 240 },
+                    'electric,electric': { result: '超级闪电', emoji: '⚡⚡', color: '#f5af19', particleCount: 260, specialEffect: 'lightning' },
+                    'light,light': { result: '强烈阳光', emoji: '☀️☀️', color: '#ffd700', particleCount: 250 }
+                };
+                
+                return reactions[key] || { 
+                    result: '未知反应', 
+                    emoji: '❓', 
+                    color: '#cccccc', 
+                    particleCount: 120
+                };
+            }
+            
+            // 应用特殊效果
+            function applySpecialEffect(effectType) {
+                const effectLayer = document.createElement('div');
+                effectLayer.style.position = 'absolute';
+                effectLayer.style.top = '0';
+                effectLayer.style.left = '0';
+                effectLayer.style.width = '100%';
+                effectLayer.style.height = '100%';
+                effectLayer.style.pointerEvents = 'none';
+                effectLayer.style.zIndex = '15';
+                
+                switch(effectType) {
+                    case 'lightning':
+                        effectLayer.style.background = 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%)';
+                        effectLayer.style.opacity = '0';
+                        effectLayer.style.animation = 'lightning 0.3s 3';
+                        break;
+                        
+                    case 'explosion':
+                        effectLayer.style.background = 'radial-gradient(circle, rgba(255,100,0,0.8) 0%, transparent 70%)';
+                        effectLayer.style.opacity = '0';
+                        effectLayer.style.animation = 'explosion 0.8s forwards';
+                        break;
+                        
+                    case 'grow':
+                        effectLayer.style.background = 'radial-gradient(circle, rgba(0,255,100,0.6) 0%, transparent 70%)';
+                        effectLayer.style.opacity = '1';
+                        effectLayer.style.animation = 'grow 1s forwards';
+                        break;
+                }
+                
+                reactionCircle.appendChild(effectLayer);
+                
+                // 移除效果
+                setTimeout(() => {
+                    effectLayer.remove();
+                }, 3000);
+            }
+            
+            // 创建粒子效果
+            function createParticles(color, count = 150) {
+                for (let i = 0; i < count; i++) {
+                    const particle = document.createElement('div');
+                    particle.classList.add('particle');
+                    particle.style.background = color;
+                    
+                    // 随机位置在反应圈中心
+                    const centerX = reactionCircle.offsetWidth / 2;
+                    const centerY = reactionCircle.offsetHeight / 2;
+                    
+                    particle.style.left = `${centerX}px`;
+                    particle.style.top = `${centerY}px`;
+                    
+                    // 随机大小
+                    const size = Math.random() * 18 + 6;
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    particle.style.opacity = '0.85';
+                    
+                    // 随机形状
+                    if (Math.random() > 0.7) {
+                        particle.style.borderRadius = '0';
+                        particle.style.transform = `rotate(${Math.random() * 360}deg)`;
+                    }
+                    
+                    reactionCircle.appendChild(particle);
+                    
+                    // 粒子动画
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * 200 + 80;
+                    const duration = Math.random() * 2 + 1;
+                    
+                    particle.animate([
+                        { transform: 'translate(0, 0) scale(1)', opacity: 0.9 },
+                        { transform: `translate(${Math.cos(angle) * distance}px, ${Math.sin(angle) * distance}px) scale(0.2)`, opacity: 0 }
+                    ], {
+                        duration: duration * 1000,
+                        easing: 'ease-out'
+                    });
+                    
+                    // 移除粒子
+                    setTimeout(() => {
+                        particle.remove();
+                    }, duration * 1000);
+                }
+            }
+            
+            // 重置按钮事件
+            resetBtn.addEventListener('click', initGame);
+            
+            // 音效按钮事件
+            soundBtn.addEventListener('click', () => {
+                soundBtn.innerHTML = soundBtn.innerHTML.includes('up') 
+                    ? '<i class="fas fa-volume-mute"></i>' 
+                    : '<i class="fas fa-volume-up"></i>';
+                soundBtn.style.background = soundBtn.style.background.includes('100, 255, 100') 
+                    ? 'rgba(0, 0, 0, 0.6)' 
+                    : 'rgba(100, 255, 100, 0.5)';
+            });
+            
+            // 初始化游戏
+            initGame();
+            
+            // 添加背景动画效果
+            const backgroundAnimation = () => {
+                const bg = document.querySelector('body');
+                const colors = ['#0f2027', '#203a43', '#2c5364', '#0d324d'];
+                let currentIndex = 0;
+                
+                setInterval(() => {
+                    currentIndex = (currentIndex + 1) % colors.length;
+                    const nextIndex = (currentIndex + 1) % colors.length;
+                    
+                    bg.style.background = `linear-gradient(135deg, ${colors[currentIndex]}, ${colors[nextIndex]})`;
+                }, 8000);
+            };
+            
+            backgroundAnimation();
+        });
+    </script>
+</body>
+</html>
